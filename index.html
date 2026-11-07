@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f5f4ef">
+  <meta name="description" content="A simple personal expense tracker.">
+  <title>Ledger — Personal Expense Tracker</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="#" aria-label="Ledger home">
+        <span class="brand-mark">L</span>
+        <span>ledger<span class="brand-dot">.</span></span>
+      </a>
+      <div class="side-label">WORKSPACE</div>
+      <nav class="nav-links" aria-label="Main navigation">
+        <a class="nav-link active" href="#overview"><span>▦</span> Overview</a>
+        <a class="nav-link" href="#transactions"><span>↕</span> Transactions</a>
+        <a class="nav-link" href="#insights"><span>◷</span> Insights</a>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="privacy-card">
+          <span class="privacy-icon">◇</span>
+          <strong>Your data stays yours</strong>
+          <p>Transactions are saved in this browser, not sent to a server.</p>
+        </div>
+        <div class="profile-row">
+          <div class="avatar">Y</div>
+          <div><strong>My wallet</strong><small>Personal account</small></div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-content" id="overview">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow" id="todayLabel">YOUR MONEY, IN FOCUS</p>
+          <h1>Overview</h1>
+        </div>
+        <button class="primary-button" id="openAddBtn"><span>＋</span> Add transaction</button>
+      </header>
+
+      <section class="welcome-row">
+        <div>
+          <h2>Good money habits start with clarity.</h2>
+          <p>Keep an eye on what comes in and where it goes.</p>
+        </div>
+        <label class="month-select-wrap">
+          <span>VIEWING</span>
+          <input type="month" id="monthFilter" aria-label="Select month">
+        </label>
+      </section>
+
+      <section class="summary-grid" aria-label="Financial summary">
+        <article class="summary-card balance-card">
+          <div class="card-top"><span>Available balance</span><span class="metric-icon">₹</span></div>
+          <div class="metric-value" id="balanceValue">₹0.00</div>
+          <div class="metric-foot"><span class="dot dot-light"></span> Income minus expenses</div>
+        </article>
+        <article class="summary-card">
+          <div class="card-top"><span>Total income</span><span class="metric-icon income-icon">↗</span></div>
+          <div class="metric-value" id="incomeValue">₹0.00</div>
+          <div class="metric-foot">For selected month</div>
+        </article>
+        <article class="summary-card">
+          <div class="card-top"><span>Total expenses</span><span class="metric-icon expense-icon">↘</span></div>
+          <div class="metric-value" id="expenseValue">₹0.00</div>
+          <div class="metric-foot">For selected month</div>
+        </article>
+        <article class="summary-card">
+          <div class="card-top"><span>Transactions</span><span class="metric-icon count-icon">#</span></div>
+          <div class="metric-value" id="countValue">0</div>
+          <div class="metric-foot">Recorded this month</div>
+        </article>
+      </section>
+
+      <section class="content-grid" id="insights">
+        <article class="panel chart-panel">
+          <div class="panel-heading">
+            <div><p class="eyebrow">YOUR ACTIVITY</p><h3>Income vs expenses</h3></div>
+            <span class="subtle-pill">Monthly</span>
+          </div>
+          <div class="chart-wrap"><canvas id="activityChart" aria-label="Income and expenses chart"></canvas></div>
+        </article>
+        <article class="panel category-panel">
+          <div class="panel-heading">
+            <div><p class="eyebrow">SPENDING BREAKDOWN</p><h3>By category</h3></div>
+          </div>
+          <div class="category-chart-wrap"><canvas id="categoryChart" aria-label="Expenses by category chart"></canvas></div>
+          <div id="categoryLegend" class="category-legend"></div>
+        </article>
+      </section>
+
+      <section class="panel transactions-panel" id="transactions">
+        <div class="panel-heading transactions-heading">
+          <div><p class="eyebrow">YOUR RECORDS</p><h3>Recent transactions</h3></div>
+          <div class="table-actions">
+            <input id="searchInput" class="search-input" type="search" placeholder="Search transactions…" aria-label="Search transactions">
+            <select id="typeFilter" class="filter-select" aria-label="Filter by type">
+              <option value="all">All types</option><option value="expense">Expenses</option><option value="income">Income</option>
+            </select>
+            <button class="outline-button" id="exportBtn">↓ Export CSV</button>
+          </div>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>TRANSACTION</th><th>CATEGORY</th><th>DATE</th><th>TYPE</th><th class="amount-col">AMOUNT</th><th></th></tr></thead>
+            <tbody id="transactionBody"></tbody>
+          </table>
+          <div id="emptyState" class="empty-state">
+            <div class="empty-icon">↗</div>
+            <strong>No transactions yet</strong>
+            <p>Add your first income or expense to see it here.</p>
+            <button class="text-button" id="emptyAddBtn">＋ Add a transaction</button>
+          </div>
+        </div>
+      </section>
+      <footer>Made for mindful money management <span>•</span> Your data stays in this browser</footer>
+    </main>
+  </div>
+
+  <dialog id="transactionDialog" class="transaction-dialog">
+    <form id="transactionForm">
+      <div class="dialog-heading">
+        <div><p class="eyebrow">YOUR WALLET</p><h2 id="dialogTitle">Add transaction</h2></div>
+        <button type="button" class="close-button" id="closeDialogBtn" aria-label="Close">×</button>
+      </div>
+      <input type="hidden" id="transactionId">
+      <div class="field-group">
+        <label>Transaction type</label>
+        <div class="type-toggle">
+          <label><input type="radio" name="transactionType" value="expense" checked><span>Expense</span></label>
+          <label><input type="radio" name="transactionType" value="income"><span>Income</span></label>
+        </div>
+      </div>
+      <div class="field-group">
+        <label for="titleInput">Title</label>
+        <input id="titleInput" type="text" maxlength="60" placeholder="e.g. Lunch, monthly allowance" required>
+      </div>
+      <div class="form-row">
+        <div class="field-group">
+          <label for="amountInput">Amount (₹)</label>
+          <input id="amountInput" type="number" min="0.01" step="0.01" placeholder="0.00" required>
+        </div>
+        <div class="field-group">
+          <label for="dateInput">Date</label>
+          <input id="dateInput" type="date" required>
+        </div>
+      </div>
+      <div class="field-group">
+        <label for="categoryInput">Category</label>
+        <select id="categoryInput" required>
+          <option>Food</option><option>Travel</option><option>Education</option><option>Shopping</option>
+          <option>Bills</option><option>Entertainment</option><option>Health</option><option>Other</option>
+          <option>Allowance</option><option>Salary</option><option>Gift</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label for="noteInput">Note <span class="optional">(optional)</span></label>
+        <textarea id="noteInput" rows="2" maxlength="180" placeholder="Add a little detail…"></textarea>
+      </div>
+      <div class="dialog-actions">
+        <button type="button" class="outline-button" id="cancelDialogBtn">Cancel</button>
+        <button type="submit" class="primary-button">Save transaction</button>
+      </div>
+    </form>
+  </dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
